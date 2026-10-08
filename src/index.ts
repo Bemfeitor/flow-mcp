@@ -295,4 +295,22 @@ server.registerTool(
   (args) => reply(patient("flow_assemble", core.assemble(args))),
 );
 
+// Vitrine: jewellery ads where the piece is the real photo, composited - never drawn by AI (src/vitrine.ts).
+const vitrineTool = (name: string, title: string, description: string, shape: object, work: (a: never) => Promise<unknown>, readOnly = false) =>
+  server.registerTool(
+    name,
+    { title, description, inputSchema: shape as typeof shapes.vitrine, annotations: { readOnlyHint: readOnly, destructiveHint: false, idempotentHint: readOnly, openWorldHint: false } },
+    (args) => reply(patient(name, work(args as never))),
+  );
+
+vitrineTool("vitrine", "Vitrine: catalogue", "List the Vitrine catalogue: jewellery pieces (with photo QC), avatar plates (with marked anchor), and creatives with their state (fidelity gate, animation job, final film). Also the anchor presets and the animation prompt per anchor.", shapes.vitrine, () => core.vitrine(), true);
+vitrineTool("vitrine_peca", "Vitrine: add a piece", "Add a jewellery piece from its REAL photo. The background is removed (plain-backdrop photo or a PNG already cut out) and the photo goes through quality control (resolution, sharpness, blown highlights, coverage). Score >= 0.7 is approved automatically; below that it waits for review. Free, local.", shapes.vitrine_peca, (a) => core.vitrine_peca(a));
+vitrineTool("vitrine_gerar_plate", "Vitrine: draw avatar plates in Flow", "Draw a synthetic avatar WITHOUT jewellery, framed for one anchor (neck, ear, hand, wrist) and lit for one light family, as free Nano Banana images in the 'vitrine-plates' folder. Returns a job id; use flow_wait. Then save the take you like with vitrine_plate.", shapes.vitrine_gerar_plate, (a) => core.vitrine_gerar_plate(a));
+vitrineTool("vitrine_plate", "Vitrine: save a plate", "Save an avatar image as a plate, with the anchor marked: x,y = where the centre of the piece goes, w = width of the anchor region, all as fractions of the image. Pass id to move the anchor of an existing plate.", shapes.vitrine_plate, (a) => core.vitrine_plate(a));
+vitrineTool("vitrine_previa", "Vitrine: preview a composite", "Composite a piece onto an image at a given anchor without saving anything, to check the placement before saving the plate. Free, local.", shapes.vitrine_previa, (a) => core.vitrine_previa(a));
+vitrineTool("vitrine_compor", "Vitrine: make creatives", "For an approved piece, make one creative per plate: the hero frame (real piece pixels composited onto the plate with a contact shadow, no AI) and the macro shot (Ken Burns over the real photo). Free, local. Each creative then waits at the fidelity gate for a person to approve it.", shapes.vitrine_compor, (a) => core.vitrine_compor(a));
+vitrineTool("vitrine_status", "Vitrine: approve or reject", "Approve or reject a piece, or pass/fail a creative's hero frame at the fidelity gate. Only a person looking at the frame should approve it.", shapes.vitrine_status, (a) => core.vitrine_status(a));
+vitrineTool("vitrine_animar", "Vitrine: animate a hero frame", "SPENDS CREDITS - ask the user first. Animates an approved hero frame in Flow (Omni 1.1 Flash, first-frame I2V, 9:16) with a prompt that keeps the jewellery untouched. max_credits caps it against Flow's own quote (720p: 7 credits at 4 s, 12 at 8 s). Refuses a second take unless de_novo. Returns a job id; use flow_wait.", shapes.vitrine_animar, (a) => core.vitrine_animar(a));
+vitrineTool("vitrine_montar", "Vitrine: cut the ad", "Join the avatar clip (desire) and the macro of the real photo (proof) into one 9:16 film, optionally with a narration on top. Free, local. Saved in the 'vitrine' films folder.", shapes.vitrine_montar, (a) => core.vitrine_montar(a));
+
 await server.connect(new StdioServerTransport());

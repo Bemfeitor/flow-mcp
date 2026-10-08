@@ -9,6 +9,10 @@ import { characterLook, createCharacter, downloadAsset, trashAsset, editCharacte
 import { JobQueue, type Job } from "./queue.js";
 import { BIN, COMPUTER, IS_MAC, IS_WIN, moveToBin } from "./platform.js";
 import { TECHNIQUES, techniqueById } from "./techniques.js";
+import {
+  ANCORAS, AVATARES_PADRAO, FAMILIAS, LUZ, METAIS, PRESETS, TIPOS, ancoraDe, animationPrompt, compor, gravarCatalogo, lerCatalogo, novaPeca,
+  novosCriativos, platePrompt, salvarPlate, vitrineDir,
+} from "./vitrine.js";
 
 export const OUTPUT_ROOT = process.env.FLOW_MCP_OUTPUT ?? join(homedir(), "flow-mcp-out");
 const words = (s: string) => s.split(/[^a-z0-9]+/i).filter((w) => w.length > 3).map((w) => w.toLowerCase());
@@ -177,6 +181,58 @@ export const shapes = {
     voice: z.string().optional().describe("Flow voice name, e.g. 'Charon' (male, informative) or 'Aoede' (female, breezy)."),
   },
   techniques: { category: z.enum(["camera", "product", "transition", "image"]).optional() },
+  vitrine: {},
+  vitrine_peca: {
+    nome: z.string().min(1).max(120).describe("Nome da peça, ex. 'Colar Riviera 14 pedras'."),
+    sku: z.string().max(60).optional(),
+    tipo: z.enum(TIPOS),
+    metal: z.enum(METAIS).optional(),
+    foto: z.string().min(1).describe("Caminho absoluto da foto REAL da peça: fundo liso de uma cor só, ou PNG já recortado com transparência."),
+  },
+  vitrine_plate: {
+    id: z.string().optional().describe("Plate existente a atualizar (ex. para reposicionar a âncora). Omita para criar."),
+    nome: z.string().min(1).max(80),
+    avatar: z.string().min(1).max(400).describe("Quem é a avatar (descrição usada para gerar o plate)."),
+    ancora: z.enum(ANCORAS),
+    familia: z.enum(FAMILIAS).optional().describe("Família de luz com que o plate foi desenhado."),
+    imagem: z.string().min(1).describe("Caminho absoluto da imagem da avatar SEM joia (gerada no Flow ou enviada)."),
+    x: z.number().min(0).max(1).describe("Centro da peça, fração da largura da imagem."),
+    y: z.number().min(0).max(1).describe("Centro da peça, fração da altura da imagem."),
+    w: z.number().min(0.01).max(1).describe("Largura da região da âncora (pescoço, orelha, mão, pulso), fração da largura da imagem."),
+  },
+  vitrine_gerar_plate: {
+    avatar: z.string().min(1).max(400).describe("Descrição da avatar sintética, ex. 'a Brazilian woman in her late twenties, warm brown skin, dark curly hair'."),
+    ancora: z.enum(ANCORAS),
+    familia: z.enum(FAMILIAS).default("estudio_neutro"),
+    takes: z.number().int().min(1).max(4).default(2),
+  },
+  vitrine_previa: {
+    peca_id: z.string().min(1),
+    imagem: z.string().min(1).describe("Imagem do plate (pode ainda não estar salvo)."),
+    x: z.number().min(0).max(1),
+    y: z.number().min(0).max(1),
+    w: z.number().min(0.01).max(1),
+  },
+  vitrine_compor: {
+    peca_id: z.string().min(1),
+    plate_ids: z.array(z.string().min(1)).min(1).max(12).describe("Um criativo por plate. Os plates precisam ser da âncora da peça."),
+  },
+  vitrine_status: {
+    tipo: z.enum(["peca", "criativo"]),
+    id: z.string().min(1),
+    status: z.enum(["aprovado", "em_revisao", "rejeitado"]).describe("Para criativo, 'aprovado' é passar o frame-herói pelo portão de fidelidade."),
+  },
+  vitrine_animar: {
+    criativo_id: z.string().min(1),
+    duracao: z.union([z.literal(4), z.literal(6), z.literal(8), z.literal(10)]).default(8),
+    resolucao: z.enum(["360p", "720p"]).default("720p"),
+    max_credits: z.number().int().min(0).max(100).default(12).describe("Teto: o Flow cota antes; acima disso nada é gasto. Omni 1.1 Flash 720p: 7 (4 s) a 15 (10 s)."),
+    de_novo: z.boolean().optional().describe("Gerar outra tomada mesmo já havendo uma (gasta créditos de novo)."),
+  },
+  vitrine_montar: {
+    criativo_id: z.string().min(1),
+    narracao: z.string().optional().describe("Caminho absoluto de uma narração (flow_narrate) para pôr por cima."),
+  },
 };
 
 type Args<K extends keyof typeof shapes> = z.infer<z.ZodObject<(typeof shapes)[K]>>;
@@ -218,6 +274,15 @@ export interface Core {
   continue_shot(a: Args<"continue_shot">): Promise<unknown>;
   agent(a: Args<"agent">): Promise<unknown>;
   outputs(): Promise<unknown>;
+  vitrine(): Promise<unknown>;
+  vitrine_peca(a: Args<"vitrine_peca">): Promise<unknown>;
+  vitrine_plate(a: Args<"vitrine_plate">): Promise<unknown>;
+  vitrine_gerar_plate(a: Args<"vitrine_gerar_plate">): Promise<unknown>;
+  vitrine_previa(a: Args<"vitrine_previa">): Promise<unknown>;
+  vitrine_compor(a: Args<"vitrine_compor">): Promise<unknown>;
+  vitrine_status(a: Args<"vitrine_status">): Promise<unknown>;
+  vitrine_animar(a: Args<"vitrine_animar">): Promise<unknown>;
+  vitrine_montar(a: Args<"vitrine_montar">): Promise<unknown>;
 }
 
 // Flow's own voices: still offered when giving a character a voice, but narration no longer goes through Flow.
@@ -506,5 +571,121 @@ export class LocalCore implements Core {
 
   async techniques({ category }: Args<"techniques">) {
     return TECHNIQUES.filter((t) => !category || t.category === category);
+  }
+
+  /* ---------- Vitrine (src/vitrine.ts): real jewellery composited onto avatar plates, then animated in Flow ---------- */
+
+  // Newest avatar-NN clip on disk. The disk, not the queue, is the record: a queue entry is lost when the process
+  // restarts, while the clip Flow made is still there.
+  private clipDe(id: string): string | undefined {
+    const dir = join(vitrineDir(OUTPUT_ROOT), "criativos", id);
+    if (!existsSync(dir)) return undefined;
+    const clips = readdirSync(dir).filter((f) => /^avatar-\d+\.mp4$/.test(f)).sort();
+    return clips.length ? join(dir, clips[clips.length - 1]) : undefined;
+  }
+
+  async vitrine() {
+    const c = lerCatalogo(OUTPUT_ROOT);
+    const criativos = c.criativos.map((cr) => {
+      const job = cr.job_id ? this.queue.get(cr.job_id) : undefined;
+      return { ...cr, clip: this.clipDe(cr.id), job: job ? jobView(job) : undefined };
+    });
+    return {
+      ...c,
+      criativos,
+      presets: PRESETS,
+      luz: LUZ,
+      avatares_padrao: AVATARES_PADRAO,
+      prompts_animacao: Object.fromEntries(ANCORAS.map((a) => [a, animationPrompt(a)])),
+    };
+  }
+
+  async vitrine_peca(a: Args<"vitrine_peca">) {
+    return novaPeca(OUTPUT_ROOT, a);
+  }
+
+  async vitrine_plate(a: Args<"vitrine_plate">) {
+    return salvarPlate(OUTPUT_ROOT, a);
+  }
+
+  // Free: Nano Banana images into the vitrine-plates folder. The panel then marks the anchor on the take it likes.
+  async vitrine_gerar_plate({ avatar, ancora, familia, takes }: Args<"vitrine_gerar_plate">) {
+    const prompt = platePrompt(avatar, ancora, familia);
+    const args = z.object(shapes.generate).parse({ project: "vitrine-plates", scenes: [{ prompt, type: "image", aspect_ratio: "9:16", variants: takes, max_credits: 0 }] });
+    return { prompt, ...(await this.generate(args)) };
+  }
+
+  async vitrine_previa({ peca_id, imagem, x, y, w }: Args<"vitrine_previa">) {
+    const peca = lerCatalogo(OUTPUT_ROOT).pecas.find((p) => p.id === peca_id);
+    if (!peca) throw new Error(`Peça ${peca_id} não existe.`);
+    mkdirSync(vitrineDir(OUTPUT_ROOT), { recursive: true });
+    const out = await compor(imagem, peca.cutout, { x, y, w }, peca.tipo, join(vitrineDir(OUTPUT_ROOT), "previa.png"));
+    return { previa: out, ancora: ancoraDe(peca.tipo) };
+  }
+
+  async vitrine_compor({ peca_id, plate_ids }: Args<"vitrine_compor">) {
+    return { criativos: await novosCriativos(OUTPUT_ROOT, peca_id, plate_ids), proximo: "Confira cada frame-herói e aprove (vitrine_status) antes de animar." };
+  }
+
+  async vitrine_status({ tipo, id, status }: Args<"vitrine_status">) {
+    const c = lerCatalogo(OUTPUT_ROOT);
+    if (tipo === "peca") {
+      const p = c.pecas.find((x) => x.id === id);
+      if (!p) throw new Error(`Peça ${id} não existe.`);
+      p.status = status;
+    } else {
+      const cr = c.criativos.find((x) => x.id === id);
+      if (!cr) throw new Error(`Criativo ${id} não existe.`);
+      cr.status = status === "em_revisao" ? "portao" : status;
+    }
+    gravarCatalogo(OUTPUT_ROOT, c);
+    return { id, tipo, status };
+  }
+
+  // The only paid step. Refuses to run twice for one creative unless asked: an empty queue is no proof that nothing ran.
+  async vitrine_animar({ criativo_id, duracao, resolucao, max_credits, de_novo }: Args<"vitrine_animar">) {
+    const c = lerCatalogo(OUTPUT_ROOT);
+    const cr = c.criativos.find((x) => x.id === criativo_id);
+    if (!cr) throw new Error(`Criativo ${criativo_id} não existe.`);
+    if (cr.status !== "aprovado") throw new Error(`O frame-herói deste criativo está "${cr.status}". Aprove-o no portão antes de gastar créditos.`);
+    const peca = c.pecas.find((p) => p.id === cr.peca_id);
+    if (!peca) throw new Error("A peça deste criativo foi removida.");
+    const anterior = cr.job_id ? this.queue.get(cr.job_id) : undefined;
+    if (!de_novo && (anterior?.status === "queued" || anterior?.status === "running")) throw new Error("Este criativo já está sendo animado. Acompanhe na fila.");
+    if (!de_novo && (anterior?.status === "done" || this.clipDe(cr.id))) {
+      throw new Error("Este criativo já tem um vídeo. Passe de_novo: true para gerar outra tomada (gasta créditos de novo).");
+    }
+    const output_dir = join(vitrineDir(OUTPUT_ROOT), "criativos", cr.id);
+    const job = this.queue.add({
+      prompt: animationPrompt(ancoraDe(peca.tipo)),
+      type: "video",
+      model: "Omni 1.1 Flash",
+      aspect_ratio: "9:16",
+      duration: duracao,
+      resolution: resolucao,
+      max_credits,
+      first_frame: cr.heroi,
+      output_dir,
+      file_stem: this.nextStem(output_dir, "avatar"),
+    });
+    cr.job_id = job.id;
+    gravarCatalogo(OUTPUT_ROOT, c);
+    return { criativo_id, job: jobView(job), proximo: "Use flow_wait com este job id; depois vitrine_montar." };
+  }
+
+  // Avatar shot (desire) then the macro of the real photo (proof). Saved in the "vitrine" films folder, so the gallery
+  // and the Cut tab see it.
+  async vitrine_montar({ criativo_id, narracao }: Args<"vitrine_montar">) {
+    const c = lerCatalogo(OUTPUT_ROOT);
+    const cr = c.criativos.find((x) => x.id === criativo_id);
+    if (!cr) throw new Error(`Criativo ${criativo_id} não existe.`);
+    const clip = this.clipDe(cr.id);
+    if (!clip) throw new Error("Este criativo ainda não tem o vídeo da avatar. Anime-o primeiro (vitrine_animar) e espere terminar.");
+    const peca = c.pecas.find((p) => p.id === cr.peca_id);
+    const nome = `${(peca?.sku || peca?.nome || "peca").normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^\w-]+/g, "-").toLowerCase()}-${cr.id}`;
+    const out = await assemble({ dir: projectDir("vitrine"), clips: [clip, cr.macro], voiceover: narracao, music_volume: 0.25, clip_volume: narracao ? 0.25 : 1, output_name: nome, hold_last_frame: true });
+    cr.final = out.output;
+    gravarCatalogo(OUTPUT_ROOT, c);
+    return { criativo_id, ...out };
   }
 }

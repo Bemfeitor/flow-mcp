@@ -139,6 +139,29 @@ audio{width:100%;margin-top:12px;filter:invert(1) hue-rotate(180deg)}
 .cast-card img{width:64px;height:64px;object-fit:cover;border-radius:10px;background:#fff;flex:0 0 auto}
 .cast-card b{display:block;font:800 24px var(--display);letter-spacing:.04em}
 .cast-card .grow{flex:1;min-width:0}
+.vt-stage{position:relative;margin-top:12px;border-radius:12px;overflow:hidden;background:#000;cursor:crosshair;touch-action:manipulation}
+.vt-stage img{display:block;width:100%;height:auto}
+.vt-band,.vt-piece,.vt-dot{position:absolute;pointer-events:none;transform:translate(-50%,-50%)}
+.vt-band{height:6px;border-radius:3px;background:rgba(255,90,31,.55)}
+.vt-piece{height:18px;border:2px dashed var(--warn);border-radius:6px}
+.vt-dot{width:16px;height:16px;border-radius:50%;background:var(--tally);box-shadow:0 0 0 3px var(--ink)}
+.vt-list{display:grid;gap:12px;margin-top:14px}
+.vt-item{display:flex;gap:14px;align-items:flex-start;padding:12px;border:2px solid var(--line);border-radius:12px;background:var(--ink)}
+.vt-item img{width:96px;height:96px;object-fit:contain;border-radius:10px;background:repeating-conic-gradient(#3a322a 0 25%,#2a241e 0 50%) 0 0/16px 16px;flex:0 0 auto}
+.vt-item .grow{flex:1;min-width:0}
+.vt-item b{display:block;font:800 24px var(--display);letter-spacing:.04em}
+.vt-item small{display:block;font:600 14px var(--mono);color:var(--dim);margin-top:2px}
+.vt-item ul{margin:8px 0 0 18px;color:var(--dim);font-size:16px}
+.vt-two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.vt-two img,.vt-two video,.vt-cr video{width:100%;aspect-ratio:9/16;object-fit:cover;border-radius:12px;background:#000}
+.vt-cr .top{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:12px}
+.vt-cr .top b{font:800 24px var(--display);letter-spacing:.04em}
+.vt-cr .err{color:var(--bad);font-size:17px;margin-top:10px}
+.vt-pick{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:8px;margin-top:12px}
+.vt-pick figure{margin:0;border:2px solid var(--line);border-radius:10px;overflow:hidden;cursor:pointer;position:relative}
+.vt-pick figure.on{border-color:var(--go)}
+.vt-pick img{display:block;width:100%;aspect-ratio:9/16;object-fit:cover}
+.vt-pick figcaption{font:700 13px var(--mono);padding:6px;background:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .pickrow{display:grid;gap:10px}
 @media(min-width:760px){.pickrow{grid-template-columns:1fr 1fr}}
 </style></head>
@@ -160,6 +183,9 @@ audio{width:100%;margin-top:12px;filter:invert(1) hue-rotate(180deg)}
     <button data-tab="restyle">Restyle<small>edit a clip</small></button>
     <button data-tab="cut">Cut<small>assemble film</small></button>
     <button data-tab="library">Library<small>in Flow</small></button>
+    <button data-tab="pecas">Peças<small>vitrine · joias</small></button>
+    <button data-tab="avatares">Avatares<small>vitrine · plates</small></button>
+    <button data-tab="criativos">Criativos<small>vitrine · anúncios</small></button>
   </nav>
 
   <div class="cols">
@@ -336,6 +362,79 @@ audio{width:100%;margin-top:12px;filter:invert(1) hue-rotate(180deg)}
           <p class="empty" style="margin-top:6px">This removes things from your Flow project, not from <span data-place="computer">this Mac</span> — your downloaded files stay put. Flow keeps them in its Trash, where you can restore them.</p>
           <div class="lib" id="l_list"></div>
         </div>
+      </section>
+
+      <!-- PECAS (Vitrine) -->
+      <section class="panel" data-panel="pecas">
+        <div class="step">Vitrine · 1</div>
+        <h2>Peças <small>grátis</small></h2>
+        <p class="lede">Suba a <b>foto real</b> da joia. Ela é recortada e passa por um controle de qualidade aqui no computador. A IA nunca desenha a peça: são os pixels da sua foto que entram no anúncio. Fotografe sobre um fundo liso de uma cor só, ou envie um PNG já recortado.</p>
+        <div class="card">
+          <div class="grid2">
+            <div><label class="f">Nome</label><input type="text" id="vp_nome" placeholder="Colar Riviera 14 pedras"></div>
+            <div><label class="f">SKU (opcional)</label><input type="text" id="vp_sku" placeholder="CR-014"></div>
+          </div>
+          <div class="grid2">
+            <div><label class="f">Tipo</label><select id="vp_tipo"><option value="colar">Colar</option><option value="brinco">Brinco</option><option value="anel">Anel</option><option value="pulseira">Pulseira</option><option value="conjunto">Conjunto</option></select></div>
+            <div><label class="f">Metal</label><select id="vp_metal"><option value="">—</option><option value="dourado">Dourado</option><option value="prateado">Prateado</option><option value="rose">Rosé</option></select></div>
+          </div>
+          <label class="f">Foto da peça</label><input type="file" id="vp_foto" accept="image/*">
+          <div class="rowbtns"><button class="btn" id="vp_go">Enviar peça</button></div>
+          <p class="empty" id="vp_info" style="margin-top:12px"></p>
+        </div>
+        <h2 style="margin-top:28px">Acervo <small id="vp_count"></small></h2>
+        <div class="vt-list" id="vp_list"><p class="empty">Nenhuma peça ainda.</p></div>
+      </section>
+
+      <!-- AVATARES (Vitrine) -->
+      <section class="panel" data-panel="avatares">
+        <div class="step">Vitrine · 2</div>
+        <h2>Avatares <small>grátis</small></h2>
+        <p class="lede">Um <b>plate</b> é a foto de uma avatar sintética, <b>sem joia</b>, enquadrada para uma âncora (pescoço, orelha, mão ou pulso). Você marca uma vez onde a peça encaixa, e todo anúncio daquela âncora usa o mesmo plate.</p>
+        <div class="card">
+          <h2 style="font-size:28px">1 · Gerar no Flow</h2>
+          <label class="f">Avatar</label><select id="va_preset"></select>
+          <textarea id="va_avatar" style="min-height:90px;margin-top:10px"></textarea>
+          <div class="grid2">
+            <div><label class="f">Âncora</label><select id="va_ancora"><option value="pescoco">Pescoço (colar)</option><option value="orelha">Orelha (brinco)</option><option value="mao">Mão (anel)</option><option value="pulso">Pulso (pulseira)</option></select></div>
+            <div><label class="f">Família de luz</label><select id="va_familia"></select></div>
+          </div>
+          <div class="rowbtns"><button class="btn" id="va_gen">Gerar 2 opções (grátis)</button></div>
+          <p class="empty" id="va_info" style="margin-top:12px">As imagens aparecem no Monitor e depois em “Escolher imagem”.</p>
+        </div>
+        <div class="card" style="margin-top:18px">
+          <h2 style="font-size:28px">2 · Escolher imagem e marcar a âncora</h2>
+          <div class="rowbtns" style="margin-top:0"><button class="btn small ghost" id="va_load">Ver imagens geradas</button><label class="btn small ghost" style="display:inline-flex;align-items:center">Enviar imagem<input type="file" id="va_up" accept="image/*" hidden></label></div>
+          <div class="vt-pick" id="va_pick"></div>
+          <div id="va_editor" hidden>
+            <p class="empty" style="margin-top:14px">Clique onde fica o <b>centro da peça</b>. A barra laranja é a largura da âncora (ex.: o pescoço); o tracejado amarelo é o tamanho que a peça vai ocupar.</p>
+            <div class="vt-stage" id="va_stage"><img id="va_img" alt=""><i class="vt-band" id="va_band"></i><i class="vt-piece" id="va_piece"></i><i class="vt-dot" id="va_dot"></i></div>
+            <label class="f">Largura da âncora</label><input type="range" id="va_w" min="2" max="90" value="30">
+            <div class="grid2">
+              <div><label class="f">Nome do plate</label><input type="text" id="va_nome" placeholder="Ana · pescoço · estúdio"></div>
+              <div><label class="f">Pré-visualizar com a peça</label><select id="va_peca"></select></div>
+            </div>
+            <div class="rowbtns"><button class="btn small ghost" id="va_prev">Pré-visualizar</button><button class="btn" id="va_save">Salvar plate</button></div>
+            <img id="va_previa" alt="" style="display:none;width:100%;margin-top:12px;border-radius:12px">
+          </div>
+        </div>
+        <h2 style="margin-top:28px">Plates <small id="va_count"></small></h2>
+        <div class="vt-list" id="va_list"><p class="empty">Nenhum plate ainda.</p></div>
+      </section>
+
+      <!-- CRIATIVOS (Vitrine) -->
+      <section class="panel" data-panel="criativos">
+        <div class="step">Vitrine · 3</div>
+        <h2>Criativos</h2>
+        <p class="lede">Para cada plate escolhido sai um <b>frame-herói</b> (a joia real composta sobre a avatar) e um <b>plano macro</b> (zoom lento na foto real), tudo grátis. Você aprova o frame no <b>portão</b>; só então o Flow anima a avatar, e é aí que se gastam créditos. Por fim, a montagem alterna avatar (desejo) e macro (prova).</p>
+        <div class="card">
+          <label class="f">Peça aprovada</label><select id="vc_peca"></select>
+          <label class="f">Plates compatíveis</label><div class="vt-pick" id="vc_plates"></div>
+          <div class="rowbtns"><button class="btn" id="vc_go">Criar frames-herói (grátis)</button></div>
+          <p class="empty" id="vc_info" style="margin-top:12px"></p>
+        </div>
+        <h2 style="margin-top:28px">Fila de criativos <small id="vc_count"></small></h2>
+        <div id="vc_list"><p class="empty">Nenhum criativo ainda.</p></div>
       </section>
     </main>
 
@@ -806,8 +905,8 @@ function estimate() {
     btn.disabled = busy || !ready.length;
   } else {
     const narrateCost = "Free";
-    $("#estNum").textContent = { cast: "Free", narrate: narrateCost, restyle: "≈ 20 credits", cut: "Free", library: "Free" }[tab] ?? "";
-    $("#estSub").textContent = { cast: "characters cost nothing", narrate: S.narrate.engine === "mac" ? `spoken on ${PLACE.computer}` : "Google AI Studio, free", restyle: "use Restyle clip", cut: "use Assemble film", library: "downloads cost nothing" }[tab] ?? "";
+    $("#estNum").textContent = { cast: "Free", narrate: narrateCost, restyle: "≈ 20 credits", cut: "Free", library: "Free", pecas: "Grátis", avatares: "Grátis", criativos: "≈ 12 créditos" }[tab] ?? "";
+    $("#estSub").textContent = { cast: "characters cost nothing", narrate: S.narrate.engine === "mac" ? `spoken on ${PLACE.computer}` : "Google AI Studio, free", restyle: "use Restyle clip", cut: "use Assemble film", library: "downloads cost nothing", pecas: "recorte e QC no seu computador", avatares: "plates são imagens Nano Banana", criativos: "só a animação gasta, e só depois do portão" }[tab] ?? "";
     btn.disabled = true;
   }
 }
@@ -962,6 +1061,217 @@ for (const [id, path] of [["f_project", "frames"], ["s_project", "shots"], ["n_p
   loadCast().then((c) => { CAST = c; renderCast(); }).catch(() => {});
   renderAll(); showTab(S.tab); poll(true); loadGallery();
 })();
+</script>
+<script>
+/* ---------- Vitrine: real jewellery on avatar plates (src/vitrine.ts) ---------- */
+const VT = { data: null, edit: null, chosen: new Set() };
+const VT_TABS = ["pecas", "avatares", "criativos"];
+const ANC = { pescoco: "pescoço", orelha: "orelha", mao: "mão", pulso: "pulso" };
+const TIPO_ANC = { colar: "pescoco", conjunto: "pescoco", brinco: "orelha", anel: "mao", pulseira: "pulso" };
+const ANC_PRESET = { pescoco: "colar", orelha: "brinco", mao: "anel", pulso: "pulseira" };
+const VT_BADGE = { aprovado: "done", em_revisao: "running", portao: "running", rejeitado: "failed" };
+const VT_LABEL = { aprovado: "aprovado", em_revisao: "em revisão", portao: "no portão", rejeitado: "rejeitado" };
+const OMNI_720 = { 4: 7, 6: 10, 8: 12, 10: 15 };
+const bust = (p) => media(p) + "&t=" + Date.now();
+
+async function vtUpload(file) {
+  const res = await fetch(`/api/upload?name=${encodeURIComponent(file.name)}`, { method: "POST", headers: { "x-flow-token": TOKEN }, body: file });
+  const d = await res.json();
+  if (!res.ok) throw new Error(d.error || res.statusText);
+  return d.path;
+}
+async function vtLoad() {
+  if (!LIVE) return;
+  try { VT.data = await api("vitrine"); vtRender(); } catch (err) { toast(err.message, true); }
+}
+const vtActive = () => (VT.data?.criativos ?? []).some((c) => c.job && (c.job.status === "queued" || c.job.status === "running"));
+
+function vtRender() {
+  const d = VT.data; if (!d) return;
+  const pecaDe = (id) => d.pecas.find((p) => p.id === id);
+  const plateDe = (id) => d.plates.find((p) => p.id === id);
+
+  /* Peças */
+  $("#vp_count").textContent = d.pecas.length ? `${d.pecas.length}` : "";
+  $("#vp_list").innerHTML = d.pecas.length ? d.pecas.map((p) => `<div class="vt-item"><img src="${media(p.cutout)}" alt="">
+    <div class="grow"><b>${esc(p.nome)}</b><small>${esc(p.tipo)}${p.metal ? " · " + esc(p.metal) : ""}${p.sku ? " · " + esc(p.sku) : ""} · QC ${Math.round(p.qc.score * 100)}% · ${esc(p.recorte)}</small>
+    <span class="badge ${VT_BADGE[p.status]}" style="display:inline-block;margin-top:8px">${VT_LABEL[p.status]}</span>
+    ${p.qc.motivos.length ? `<ul>${p.qc.motivos.map((m) => `<li>${esc(m)}</li>`).join("")}</ul>` : ""}
+    <div class="rowbtns" style="margin-top:10px">${p.status !== "aprovado" ? `<button class="btn small" data-vstatus="peca:${p.id}:aprovado">Aprovar</button>` : ""}${p.status !== "rejeitado" ? `<button class="btn small ghost" data-vstatus="peca:${p.id}:rejeitado">Rejeitar</button>` : ""}</div></div></div>`).join("") : `<p class="empty">Nenhuma peça ainda.</p>`;
+
+  /* Avatares */
+  if (!$("#va_preset").options.length) {
+    $("#va_preset").innerHTML = d.avatares_padrao.map((a, i) => `<option value="${i}">Avatar ${i + 1} · ${esc(a.slice(0, 60))}…</option>`).join("") + `<option value="x">Escrever a minha</option>`;
+    $("#va_avatar").value = d.avatares_padrao[0];
+    $("#va_familia").innerHTML = Object.entries(d.luz).map(([k, v]) => `<option value="${k}" ${k === "estudio_neutro" ? "selected" : ""}>${esc(v.nome)}</option>`).join("");
+  }
+  const aprovadas = d.pecas.filter((p) => p.status === "aprovado");
+  const pv = $("#va_peca").value;
+  $("#va_peca").innerHTML = `<option value="">—</option>` + aprovadas.map((p) => `<option value="${p.id}" ${p.id === pv ? "selected" : ""}>${esc(p.nome)} (${ANC[TIPO_ANC[p.tipo]]})</option>`).join("");
+  $("#va_count").textContent = d.plates.length ? `${d.plates.length}` : "";
+  $("#va_list").innerHTML = d.plates.length ? d.plates.map((p) => `<div class="vt-item"><img src="${media(p.imagem)}" alt="" style="object-fit:cover">
+    <div class="grow"><b>${esc(p.nome)}</b><small>${ANC[p.ancora]}${p.familia ? " · " + esc(d.luz[p.familia]?.nome ?? p.familia) : ""}</small><small>${esc(p.avatar.slice(0, 90))}</small>
+    <div class="rowbtns" style="margin-top:10px"><button class="btn small ghost" data-vedit="${p.id}">Reposicionar âncora</button></div></div></div>`).join("") : `<p class="empty">Nenhum plate ainda.</p>`;
+
+  /* Criativos */
+  const cv = $("#vc_peca").value;
+  $("#vc_peca").innerHTML = aprovadas.length ? aprovadas.map((p) => `<option value="${p.id}" ${p.id === cv ? "selected" : ""}>${esc(p.nome)} · ${esc(p.tipo)}</option>`).join("") : `<option value="">Aprove uma peça primeiro</option>`;
+  vtRenderPlatesChoice();
+  $("#vc_count").textContent = d.criativos.length ? `${d.criativos.length}` : "";
+  $("#vc_list").innerHTML = d.criativos.length ? d.criativos.map((c) => {
+    const peca = pecaDe(c.peca_id), plate = plateDe(c.plate_id), job = c.job;
+    const rodando = job && (job.status === "queued" || job.status === "running");
+    let acoes = "";
+    if (c.status === "portao") acoes = `<button class="btn small" data-vstatus="criativo:${c.id}:aprovado">Aprovar frame</button><button class="btn small ghost" data-vstatus="criativo:${c.id}:rejeitado">Rejeitar</button>`;
+    else if (c.status === "aprovado" && rodando) acoes = `<span class="badge running">${job.status === "queued" ? "na fila do Flow" : "animando"}${job.progress ? " · " + esc(job.progress) : ""}</span>`;
+    else if (c.status === "aprovado" && !c.clip) acoes = `<select data-vdur="${c.id}" style="width:auto">${[4, 6, 8, 10].map((n) => `<option value="${n}" ${n === 8 ? "selected" : ""}>${n} s · ${OMNI_720[n]} créditos</option>`).join("")}</select><button class="btn small" data-vanim="${c.id}">Animar no Flow</button>`;
+    else if (c.clip) acoes = `<button class="btn small" data-vmont="${c.id}">${c.final ? "Montar de novo" : "Montar anúncio"}</button><button class="btn small ghost" data-vanim="${c.id}" data-denovo="1">Outra tomada</button>`;
+    return `<div class="card vt-cr" style="margin-bottom:18px"><div class="top"><b>${esc(peca?.nome ?? "?")}</b><span class="empty">em ${esc(plate?.nome ?? "?")}</span><span class="badge ${VT_BADGE[c.status]}">${VT_LABEL[c.status]}</span></div>
+      <div class="vt-two"><img src="${media(c.heroi)}" alt="frame-herói"><video src="${media(c.macro)}" muted loop autoplay playsinline></video></div>
+      ${c.clip ? `<label class="f">Avatar animada</label><video src="${media(c.clip)}" controls playsinline></video>` : ""}
+      ${c.final ? `<label class="f">Anúncio montado</label><video src="${media(c.final)}" controls playsinline></video><p class="empty" style="word-break:break-all;margin-top:6px">${esc(c.final)}</p>` : ""}
+      ${job?.status === "failed" ? `<p class="err">${esc(job.error ?? "Falhou.")}</p>` : ""}${job?.note ? `<p class="empty" style="margin-top:8px">${esc(job.note)}</p>` : ""}
+      <div class="rowbtns">${acoes}</div></div>`;
+  }).join("") : `<p class="empty">Nenhum criativo ainda.</p>`;
+}
+
+function vtRenderPlatesChoice() {
+  const d = VT.data; if (!d) return;
+  const peca = d.pecas.find((p) => p.id === $("#vc_peca").value);
+  const anc = peca ? TIPO_ANC[peca.tipo] : null;
+  const plates = d.plates.filter((p) => !anc || p.ancora === anc);
+  for (const id of [...VT.chosen]) if (!plates.some((p) => p.id === id)) VT.chosen.delete(id);
+  $("#vc_plates").innerHTML = plates.length ? plates.map((p) => `<figure data-vplate="${p.id}" class="${VT.chosen.has(p.id) ? "on" : ""}"><img src="${media(p.imagem)}" alt=""><figcaption>${esc(p.nome)}</figcaption></figure>`).join("")
+    : `<p class="empty">${anc ? `Nenhum plate de ${ANC[anc]}. Crie um na aba Avatares.` : "Escolha uma peça."}</p>`;
+}
+
+/* anchor editor */
+function vtOpenEditor(edit) {
+  VT.edit = edit;
+  $("#va_editor").hidden = false;
+  $("#va_img").src = media(edit.imagem);
+  $("#va_w").value = Math.round(edit.w * 100);
+  if (edit.nome) $("#va_nome").value = edit.nome;
+  if (edit.ancora) $("#va_ancora").value = edit.ancora;
+  if (edit.familia) $("#va_familia").value = edit.familia;
+  if (edit.avatar) $("#va_avatar").value = edit.avatar;
+  $("#va_previa").style.display = "none";
+  $("#va_img").onload = vtMarks;
+  $("#va_editor").scrollIntoView({ behavior: "smooth", block: "start" });
+}
+function vtMarks() {
+  const e = VT.edit; if (!e) return;
+  const img = $("#va_img"), W = img.clientWidth, H = img.clientHeight;
+  const escala = VT.data?.presets?.[ANC_PRESET[$("#va_ancora").value]]?.escala_rel ?? 0.6;
+  const at = (el, w) => Object.assign(el.style, { left: `${e.x * W}px`, top: `${e.y * H}px`, width: w ? `${w}px` : "" });
+  at($("#va_band"), e.w * W); at($("#va_piece"), e.w * escala * W); at($("#va_dot"));
+}
+$("#va_stage").addEventListener("click", (ev) => {
+  if (!VT.edit) return;
+  const r = $("#va_img").getBoundingClientRect();
+  VT.edit.x = Math.min(1, Math.max(0, (ev.clientX - r.left) / r.width));
+  VT.edit.y = Math.min(1, Math.max(0, (ev.clientY - r.top) / r.height));
+  vtMarks();
+});
+$("#va_w").addEventListener("input", (ev) => { if (VT.edit) { VT.edit.w = ev.target.value / 100; vtMarks(); } });
+$("#va_ancora").addEventListener("change", vtMarks);
+window.addEventListener("resize", vtMarks);
+$("#va_preset").addEventListener("change", (ev) => { const i = ev.target.value; $("#va_avatar").value = i === "x" ? "" : VT.data.avatares_padrao[+i]; if (i === "x") $("#va_avatar").focus(); });
+
+$("#va_gen").onclick = async () => {
+  if (!guard()) return;
+  const avatar = $("#va_avatar").value.trim();
+  if (!avatar) return toast("Descreva a avatar.", true);
+  try {
+    await api("vitrine_gerar_plate", { avatar, ancora: $("#va_ancora").value, familia: $("#va_familia").value, takes: 2 });
+    $("#va_info").textContent = "Na fila do Flow (grátis). Quando terminar, clique em “Ver imagens geradas”.";
+    poll();
+  } catch (err) { toast(err.message, true); }
+};
+$("#va_load").onclick = async () => {
+  if (!guard()) return;
+  try {
+    const out = await api("outputs");
+    const imgs = (out.projects.find((p) => p.name === "vitrine-plates")?.files ?? []).filter((f) => f.kind === "image").reverse();
+    $("#va_pick").innerHTML = imgs.length ? imgs.map((f) => `<figure data-vimg="${esc(f.path)}"><img src="${media(f.path)}" alt=""><figcaption>${esc(f.name)}</figcaption></figure>`).join("") : `<p class="empty">Nenhuma imagem gerada ainda.</p>`;
+  } catch (err) { toast(err.message, true); }
+};
+$("#va_pick").addEventListener("click", (ev) => { const f = ev.target.closest("figure[data-vimg]"); if (f) vtOpenEditor({ imagem: f.dataset.vimg, x: 0.5, y: 0.5, w: 0.3 }); });
+$("#va_up").addEventListener("change", async (ev) => {
+  const f = ev.target.files[0]; if (!f || !guard()) return;
+  try { vtOpenEditor({ imagem: await vtUpload(f), x: 0.5, y: 0.5, w: 0.3 }); } catch (err) { toast(err.message, true); }
+  ev.target.value = "";
+});
+$("#va_prev").onclick = async () => {
+  const e = VT.edit, peca_id = $("#va_peca").value;
+  if (!e || !guard()) return;
+  if (!peca_id) return toast("Escolha uma peça aprovada para pré-visualizar.", true);
+  try { const r = await api("vitrine_previa", { peca_id, imagem: e.imagem, x: e.x, y: e.y, w: e.w }); Object.assign($("#va_previa"), { src: bust(r.previa) }).style.display = "block"; }
+  catch (err) { toast(err.message, true); }
+};
+$("#va_save").onclick = async () => {
+  const e = VT.edit; if (!e || !guard()) return;
+  const nome = $("#va_nome").value.trim(), avatar = $("#va_avatar").value.trim();
+  if (!nome) return toast("Dê um nome ao plate.", true);
+  try {
+    await api("vitrine_plate", { id: e.id, nome, avatar: avatar || "avatar enviada", ancora: $("#va_ancora").value, familia: $("#va_familia").value, imagem: e.imagem, x: e.x, y: e.y, w: e.w });
+    toast("Plate salvo."); VT.edit = null; $("#va_editor").hidden = true; vtLoad();
+  } catch (err) { toast(err.message, true); }
+};
+
+$("#vp_go").onclick = async () => {
+  if (!guard()) return;
+  const file = $("#vp_foto").files[0], nome = $("#vp_nome").value.trim();
+  if (!nome) return toast("Dê um nome à peça.", true);
+  if (!file) return toast("Escolha a foto da peça.", true);
+  $("#vp_go").disabled = true; $("#vp_info").textContent = "Recortando e conferindo a foto…";
+  try {
+    const foto = await vtUpload(file);
+    const p = await api("vitrine_peca", { nome, sku: $("#vp_sku").value.trim() || undefined, tipo: $("#vp_tipo").value, metal: $("#vp_metal").value || undefined, foto });
+    $("#vp_info").textContent = p.status === "aprovado" ? `Aprovada no controle de qualidade (${Math.round(p.qc.score * 100)}%).` : `Ficou em revisão (${Math.round(p.qc.score * 100)}%): veja os motivos abaixo. Aprove à mão se o recorte estiver bom.`;
+    $("#vp_foto").value = ""; $("#vp_nome").value = ""; $("#vp_sku").value = "";
+    vtLoad();
+  } catch (err) { $("#vp_info").textContent = ""; toast(err.message, true); }
+  $("#vp_go").disabled = false;
+};
+
+$("#vc_peca").addEventListener("change", vtRenderPlatesChoice);
+$("#vc_plates").addEventListener("click", (ev) => { const f = ev.target.closest("figure[data-vplate]"); if (!f) return; const id = f.dataset.vplate; VT.chosen.has(id) ? VT.chosen.delete(id) : VT.chosen.add(id); f.classList.toggle("on"); });
+$("#vc_go").onclick = async () => {
+  if (!guard()) return;
+  const peca_id = $("#vc_peca").value;
+  if (!peca_id) return toast("Aprove uma peça primeiro.", true);
+  if (!VT.chosen.size) return toast("Escolha pelo menos um plate.", true);
+  $("#vc_go").disabled = true; $("#vc_info").textContent = "Compondo a joia real sobre cada plate…";
+  try { const r = await api("vitrine_compor", { peca_id, plate_ids: [...VT.chosen] }); $("#vc_info").textContent = `${r.criativos.length} criativo(s) no portão. Confira o frame-herói e aprove.`; VT.chosen.clear(); vtLoad(); }
+  catch (err) { $("#vc_info").textContent = ""; toast(err.message, true); }
+  $("#vc_go").disabled = false;
+};
+
+document.addEventListener("click", async (ev) => {
+  const st = ev.target.closest("[data-vstatus]"), an = ev.target.closest("[data-vanim]"), mo = ev.target.closest("[data-vmont]"), ed = ev.target.closest("[data-vedit]");
+  if (!(st || an || mo || ed) || !guard()) return;
+  try {
+    if (st) { const [tipo, id, status] = st.dataset.vstatus.split(":"); await api("vitrine_status", { tipo, id, status }); }
+    if (ed) { const p = VT.data.plates.find((x) => x.id === ed.dataset.vedit); vtOpenEditor({ id: p.id, imagem: p.imagem, nome: p.nome, avatar: p.avatar, ancora: p.ancora, familia: p.familia, ...p.posicao }); return; }
+    if (an) {
+      const id = an.dataset.vanim, de_novo = Boolean(an.dataset.denovo);
+      const duracao = +($(`[data-vdur="${id}"]`)?.value ?? 8);
+      const custo = OMNI_720[duracao];
+      if (!confirm(`Isto gasta cerca de ${custo} créditos do seu plano Flow (Omni 1.1 Flash, ${duracao} s, 720p).${de_novo ? " É uma tomada NOVA: a anterior continua salva." : ""} Continuar?`)) return;
+      await api("vitrine_animar", { criativo_id: id, duracao, max_credits: custo, de_novo: de_novo || undefined });
+      toast("Na fila do Flow."); poll();
+    }
+    if (mo) { mo.disabled = true; toast("Montando…"); await api("vitrine_montar", { criativo_id: mo.dataset.vmont }); toast("Anúncio montado."); loadGallery(); }
+    vtLoad();
+  } catch (err) { toast(err.message, true); vtLoad(); }
+});
+
+// Refresh the Vitrine tabs when they open, and while a creative is being animated.
+const showTabBase = showTab;
+showTab = (name) => { showTabBase(name); if (VT_TABS.includes(name)) vtLoad(); };
+setInterval(() => { if (VT_TABS.includes(S.tab) && vtActive()) vtLoad(); }, 5000);
+vtLoad();
 </script>
 </body>
 </html>

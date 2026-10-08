@@ -322,3 +322,16 @@ The preview tool could not read the project while it lived in ~/Desktop; check t
   FLOW_MCP_PORT=8799 and FLOW_MCP_HOME=<scratch dir>. Never reuse the real home for that: a process that owns a port
   writes a fresh token to HOME/token, which locks every client of the real owner out (401). Symlink characters.json into
   the scratch home when looks must persist. Give the client a 60 s request timeout so the app's limit is reproduced.
+- VITRINE (2026-10-08, ported from Bemfeitor/vitrine-de-avatares): src/vitrine.ts + Studio tabs Peças/Avatares/Criativos +
+  vitrine_* tools. Thesis kept: AI never draws the jewellery. The Vitrine's ComfyUI graphs were core image nodes plus RMBG,
+  so they are now ffmpeg decode/encode + pixel loops: cut-out = flood fill from the border on a plain backdrop (refuses a
+  busy background; a PNG with alpha is used as is), QC = port of qc.service.ts, composition = port of compor-peca.json
+  with presets-ancora.json (shadow px are for a 420 px piece and scale with it), macro = port of macro-produto.sh fed one
+  frame into zoompan. QC coverage changed on purpose: the original's opaque share failed a frame-filling thin chain at
+  1.7 %; "get closer" now uses the cut-out's box, "background came along" still the opaque share. Flow is used only for
+  plates (free images, prompt forbids any jewellery) and for animating an APPROVED hero frame (Omni 1.1 Flash, first_frame,
+  9:16, max_credits = Flow's quote). vitrine_animar refuses a second take while a job runs or a clip exists on disk unless
+  de_novo. Verified in this container with synthetic images: cut-out (14 stones intact), QC gate, manual approval,
+  anchor editor, preview, hero frame, macro (1080x1920, 75 frames), gate, refusals. NOT yet run live: plate generation
+  and the paid animation in Flow, and whether I2V keeps the piece intact in motion (the open question of the whole port).
+

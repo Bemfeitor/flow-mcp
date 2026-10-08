@@ -35,6 +35,15 @@ export class RemoteCore implements Core {
   continue_shot = (a: unknown) => call("continue_shot", a);
   agent = (a: unknown) => call("agent", a);
   outputs = () => call("outputs", {});
+  vitrine = () => call("vitrine", {});
+  vitrine_peca = (a: unknown) => call("vitrine_peca", a);
+  vitrine_plate = (a: unknown) => call("vitrine_plate", a);
+  vitrine_gerar_plate = (a: unknown) => call("vitrine_gerar_plate", a);
+  vitrine_previa = (a: unknown) => call("vitrine_previa", a);
+  vitrine_compor = (a: unknown) => call("vitrine_compor", a);
+  vitrine_status = (a: unknown) => call("vitrine_status", a);
+  vitrine_animar = (a: unknown) => call("vitrine_animar", a);
+  vitrine_montar = (a: unknown) => call("vitrine_montar", a);
 
   // Long waits are split up so no single HTTP request outlives fetch's header timeout.
   async wait(a: { job_ids?: string[]; timeout_seconds: number }): Promise<unknown> {
