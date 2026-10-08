@@ -47,6 +47,12 @@ async function launchChrome(): Promise<void> {
       `--remote-debugging-port=${CDP_PORT}`,
       "--no-first-run",
       "--no-default-browser-check",
+      // Every selector is Flow's ENGLISH accessible name ("Agent", "Start generation"...). On a computer set to another
+      // language Flow follows the browser and renames them, and the first lookup times out (first Windows run,
+      // 2026-10-08, pt-BR). This profile only ever drives Flow, so it asks for English pages; the user's own Chrome
+      // keeps its language.
+      "--lang=en-US",
+      "--accept-lang=en-US,en",
       FLOW_URL,
     ],
     { detached: true, stdio: "ignore" },

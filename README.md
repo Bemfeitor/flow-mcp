@@ -204,6 +204,25 @@ key → Save key**. It's checked with Google before it's saved, and stored only 
 
 ---
 
+## Vitrine: jewellery ads (Peças · Avatares · Criativos)
+
+Ported from the Vitrine project. The jewellery in the ad is **the real photo**, never drawn by AI: the piece is cut out,
+composited onto a pre-made avatar picture (a *plate*) with a contact shadow, and only then does Flow animate it.
+
+1. **Peças** – upload the real photo (plain one-colour backdrop, or a PNG already cut out). It is cut out and checked
+   (resolution, sharpness, blown highlights, coverage) on your computer. Score ≥ 70 % is approved; below that you review it.
+2. **Avatares** – draw a synthetic avatar *without jewellery* in Flow (free Nano Banana images, framed for neck, ear, hand
+   or wrist and lit for one light family), or upload one. Click where the centre of the piece goes, set the anchor width,
+   preview with a real piece, save the plate. Done once per plate.
+3. **Criativos** – pick an approved piece and its plates. Each gives a **hero frame** (real piece on the plate) and a
+   **macro shot** (slow zoom on the real photo), both free. Approve the hero frame at the **gate**; only then can Flow animate
+   it (Omni 1.1 Flash, first-frame I2V, 9:16: 7–15 credits, asks first). **Montar** joins avatar clip + macro into one film
+   in the `vitrine` films folder.
+
+Tools: `vitrine`, `vitrine_peca`, `vitrine_gerar_plate`, `vitrine_plate`, `vitrine_previa`, `vitrine_compor`,
+`vitrine_status`, `vitrine_animar` (spends credits), `vitrine_montar`. Everything lives in `~/flow-mcp-out/_vitrine`
+(`catalogo.json` plus the files). No ComfyUI, Supabase, Redis or new dependency: the composition is ffmpeg plus pixel loops.
+
 ## Behaviour and settings
 
 - One generation at a time, with a random 25–70 second pause between them. The page carries an
